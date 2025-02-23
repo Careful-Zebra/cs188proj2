@@ -46,6 +46,7 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        print(scores)
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
@@ -74,7 +75,60 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
+        # print("successorGameState: " + str(successorGameState))
+        # print("newPos: " + str(newPos))
+        # print("newFood: " + str(newFood))
+        # print("newGhostStates: " + str(newGhostStates))
+        # print("newScaredTimes: " + str(newScaredTimes))
+
+        score = successorGameState.getScore()
+        foodList = newFood.asList()
+        if len(foodList) != 0:
+            foodRemaining = 1 / len(foodList)
+        else:
+            foodRemaining = 1
+        #get the distance to every food
+        foodDist = []
+        for x in range(0, newFood.width):
+            for y in range(0, newFood.height):
+                if (newFood[x][y]):
+                    foodDist.append(manhattanDistance(newPos, [x, y]) + 1)
+
+        foodRand = random.choice(foodDist) / foodRemaining
+        foodMax = max(foodDist) * 100
+        foodMin = min(foodDist)
+        # avgFoodDist /= foodRemaining
+        foodChoice = foodMin 
+        foodRemaining *= 1000
+        foodEval = (1 / foodChoice) * 1000
+        ghostDists = []
+        for ghost in newGhostStates:
+            ghostDists.append(manhattanDistance(newPos, ghost.getPosition()))
+        avgGhostDist = sum(ghostDists) / len(newGhostStates)
+
+        
+        if newScaredTimes == 0:
+            ghostEval = 1 / avgGhostDist
+        else:
+            ghostEval = avgGhostDist
+
+        if min(ghostDists) > 9:
+            ghostEval = 0
+        
+
+        ghostEval /= 250000
+        ghostEval *= ghostEval * ghostEval * ghostEval
+
+        standingStill = (newPos != currentGameState.getPacmanPosition)
+        standing = (not standingStill) * 100
+
+        finalEval = score + foodRemaining + foodEval + ghostEval + standingStill
+
+        
+
+        return finalEval
+
+
         return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState: GameState):
