@@ -116,13 +116,15 @@ class ReflexAgent(Agent):
             ghostEval = 0
         
 
-        ghostEval /= 250000
-        ghostEval *= ghostEval * ghostEval * ghostEval
+        ghostEval /= 250
+        ghostEval *= ghostEval * ghostEval
 
-        standingStill = (newPos != currentGameState.getPacmanPosition)
-        standing = (not standingStill) * 100
+        standingStill = (newPos == currentGameState.getPacmanPosition())
+        standing = ((not standingStill) * 100) 
+        if (standing == 0 ):
+            standing = -10000
 
-        finalEval = score + foodRemaining + foodEval + ghostEval + standingStill
+        finalEval = score + foodRemaining + foodEval + ghostEval + standing
 
         
 
