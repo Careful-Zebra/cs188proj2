@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: autograder q1",
+            "name": "Python Debugger: autograder q2",
             "type": "debugpy",
             "request": "launch",
             "program": "autograder.py",
             "console": "integratedTerminal",
-            "args": "-q q1"
+            "args": "-q q2"
         
         }
     ]

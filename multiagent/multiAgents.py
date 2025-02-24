@@ -166,6 +166,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
     Your minimax agent (question 2)
     """
 
+    
+
     def getAction(self, gameState: GameState):
         """
         Returns the minimax action from the current gameState using self.depth
@@ -189,8 +191,53 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        #counter is agent, increases with mod
+
+        def value(state, deepness, counter):
+            if (counter == 0):
+                deepness -= 1
+            if state.isWin() or state.isLose() or (deepness == 0):
+                return self.evaluationFunction(state)
+            
+            if (counter == 0):
+                return maxValue(state, deepness)
+            else:
+                return minValue(state, deepness, counter)
+            
+        def maxValue(state, deepness):
+            v = -10000000000
+            actions = state.getLegalActions(0)
+            for action in actions:
+                successor = state.generateSuccessor(0, action)
+                v = max(v, value(successor, deepness - 1, 1))
+            return v
+        
+        def minValue(state, deepness, counter):
+            v = 10000000000
+            actions = state.getLegalActions(counter)
+            for action in actions:
+                successor = state.generateSuccessor(counter, action)
+                newCounter = (counter + 1) % gameState.getNumAgents()
+                v = min(v, value(successor, deepness, newCounter))
+            return v
+
+
+            
+            
+
+
+        actions = gameState.getLegalActions(0)
+        actionValues = {}
+        for action in actions:
+            successor = gameState.generateSuccessor(0, action)
+            actionValues[action] = value(successor, self.depth, 1)
+        return [key for key in actionValues if actionValues[key] == max(actionValues.values())][0]
+    
+
+    
+    
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
