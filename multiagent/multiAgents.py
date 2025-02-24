@@ -251,31 +251,41 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         def alphabeta(state, alpha, beta, counter, deepness):
 
             if state.isWin() or state.isLose() or (deepness == 0):
-                return self.evaluationFunction(state)
+                return (self.evaluationFunction(state), -1)
             if counter == 0:
                 v = -10000000
                 actions = state.getLegalActions(0)
                 for action in actions:
                     successor = state.generateSuccessor(0, action)
-                    v = max(v, alphabeta(successor, alpha, beta, 1, deepness))
-                    if v >= beta:
-                        return v
+                    vPrev = v
+                    v = max(v, alphabeta(successor, alpha, beta, 1, deepness)[0])
+                    if vPrev != v:
+                        minAction = action
+                    if v > beta:
+                        return (v, minAction)
                     alpha = max(alpha, v)
-                return v
+                return (v, minAction)
             else:
                 v = 10000000
                 actions = state.getLegalActions(counter)
                 for action in actions:
                     successor = state.generateSuccessor(counter, action)
-                    newCounter = (counter + 1) % gameState.getNumAgents()
+                    numAgents = gameState.getNumAgents()
+                    newCounter = (counter + 1) % numAgents
                     if (newCounter == 0):
-                        deepness -= 1
-                    v = min(v, alphabeta(successor, alpha, beta, newCounter, deepness))
-                    if v <= alpha:
-                        return v
+                        newDeepness = deepness - 1
+                    else:
+                        newDeepness = deepness
+                    vPrev = v
+                    v = min(v, alphabeta(successor, alpha, beta, newCounter, newDeepness)[0])
+                    if vPrev != v:
+                        minAction = action
+                    if v < alpha:
+                        return (v, minAction)
                     beta = min(beta, v)
-                return v
+                return (v, minAction)
             
+        return alphabeta(gameState, -100000000000, 10000000000000, 0, self.depth)[1]
         actions = gameState.getLegalActions(0)
         actionValues = {}
         for action in actions:
@@ -295,8 +305,48 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def value(state, deepness, counter):
+            if (counter == 0):
+                deepness -= 1
+            if state.isWin() or state.isLose() or (deepness == 0):
+                return self.evaluationFunction(state)
+            
+            if (counter == 0):
+                return maxValue(state, deepness)
+            else:
+                return expValue(state, deepness, counter)
+            
+        def maxValue(state, deepness):
+            v = -10000000000
+            actions = state.getLegalActions(0)
+            for action in actions:
+                successor = state.generateSuccessor(0, action)
+                v = max(v, value(successor, deepness, 1))
+            return v
+        
+        def expValue(state, deepness, counter):
+            v = 0
+            actions = state.getLegalActions(counter)
+            p = 1 / len(actions)
+            for action in actions:
+                successor = state.generateSuccessor(counter, action)
+                newCounter = (counter + 1) % gameState.getNumAgents()
+                v += p * value(successor, deepness, newCounter)
+            return v
+
+
+            
+            
+
+
+        actions = gameState.getLegalActions(0)
+        actionValues = {}
+        for action in actions:
+            successor = gameState.generateSuccessor(0, action)
+            actionValues[action] = value(successor, self.depth, 1)
+        return [key for key in actionValues if actionValues[key] == max(actionValues.values())][0]
+    
+
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
@@ -305,8 +355,65 @@ def betterEvaluationFunction(currentGameState: GameState):
 
     DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    # print("successorGameState: " + str(successorGameState))
+    # print("newPos: " + str(newPos))
+    # print("newFood: " + str(newFood))
+    # print("newGhostStates: " + str(newGhostStates))
+    # print("newScaredTimes: " + str(newScaredTimes))
+
+    score = currentGameState.getScore()
+    foodList = newFood.asList()
+    if len(foodList) != 0:
+        foodRemaining = 1 / len(foodList)
+    else:
+        foodRemaining = 1
+    #get the distance to every food
+    foodDist = []
+    for x in range(0, newFood.width):
+        for y in range(0, newFood.height):
+            if (newFood[x][y]):
+                foodDist.append(manhattanDistance(newPos, [x, y]) + 1)
+    if (len(foodDist) != 0):
+        foodMin = min(foodDist)
+    else:
+        foodMin = 1
+    # avgFoodDist /= foodRemaining
+    foodChoice = foodMin 
+    foodRemaining *= 20000
+    foodEval = (1 / foodChoice) * 10
+    ghostDists = []
+    for ghost in newGhostStates:
+        ghostDists.append(manhattanDistance(newPos, ghost.getPosition()))
+    avgGhostDist = sum(ghostDists) / len(newGhostStates)
+
+    
+    ghostEval = avgGhostDist
+
+    if min(ghostDists) < 9:
+        ghostEval = avgGhostDist / 2
+    else:
+        ghostEval = 0
+    
+
+    if min(ghostDists) < 2:
+        ghostEval = -1000
+    curPos = currentGameState.getPacmanPosition()
+    standingStill = (newPos == curPos)
+    standing = ((not standingStill) * 100) 
+    if (standing == 0 ):
+        standing = -10000
+
+    finalEval = score + foodRemaining + foodEval + ghostEval + standing
+
+    
+
+    return finalEval
 
 # Abbreviation
 better = betterEvaluationFunction
