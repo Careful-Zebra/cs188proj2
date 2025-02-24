@@ -210,7 +210,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             actions = state.getLegalActions(0)
             for action in actions:
                 successor = state.generateSuccessor(0, action)
-                v = max(v, value(successor, deepness - 1, 1))
+                v = max(v, value(successor, deepness, 1))
             return v
         
         def minValue(state, deepness, counter):
@@ -248,8 +248,40 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def alphabeta(state, alpha, beta, counter, deepness):
+
+            if state.isWin() or state.isLose() or (deepness == 0):
+                return self.evaluationFunction(state)
+            if counter == 0:
+                v = -10000000
+                actions = state.getLegalActions(0)
+                for action in actions:
+                    successor = state.generateSuccessor(0, action)
+                    v = max(v, alphabeta(successor, alpha, beta, 1, deepness))
+                    if v >= beta:
+                        return v
+                    alpha = max(alpha, v)
+                return v
+            else:
+                v = 10000000
+                actions = state.getLegalActions(counter)
+                for action in actions:
+                    successor = state.generateSuccessor(counter, action)
+                    newCounter = (counter + 1) % gameState.getNumAgents()
+                    if (newCounter == 0):
+                        deepness -= 1
+                    v = min(v, alphabeta(successor, alpha, beta, newCounter, deepness))
+                    if v <= alpha:
+                        return v
+                    beta = min(beta, v)
+                return v
+            
+        actions = gameState.getLegalActions(0)
+        actionValues = {}
+        for action in actions:
+            successor = gameState.generateSuccessor(0, action)
+            actionValues[action] = alphabeta(successor, -1000000000000000, 10000000000, 1, self.depth)
+        return [key for key in actionValues if actionValues[key] == max(actionValues.values())][0]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
