@@ -46,7 +46,6 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        print(scores)
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
@@ -93,33 +92,32 @@ class ReflexAgent(Agent):
             for y in range(0, newFood.height):
                 if (newFood[x][y]):
                     foodDist.append(manhattanDistance(newPos, [x, y]) + 1)
-
-        foodRand = random.choice(foodDist) / foodRemaining
-        foodMax = max(foodDist) * 100
-        foodMin = min(foodDist)
+        if (len(foodDist) != 0):
+            foodMin = min(foodDist)
+        else:
+            foodMin = 1
         # avgFoodDist /= foodRemaining
         foodChoice = foodMin 
-        foodRemaining *= 1000
-        foodEval = (1 / foodChoice) * 1000
+        foodRemaining *= 10000
+        foodEval = (1 / foodChoice) * 10
         ghostDists = []
         for ghost in newGhostStates:
             ghostDists.append(manhattanDistance(newPos, ghost.getPosition()))
         avgGhostDist = sum(ghostDists) / len(newGhostStates)
 
         
-        if newScaredTimes == 0:
-            ghostEval = 1 / avgGhostDist
-        else:
-            ghostEval = avgGhostDist
+        ghostEval = avgGhostDist
 
-        if min(ghostDists) > 9:
-            ghostEval = 0
+        if min(ghostDists) < 9:
+            ghostEval = avgGhostDist
+        else:
+            ghostEval = 9
         
 
-        ghostEval /= 250
-        ghostEval *= ghostEval * ghostEval
-
-        standingStill = (newPos == currentGameState.getPacmanPosition())
+        if min(ghostDists) < 3:
+            ghostEval = -1000
+        curPos = currentGameState.getPacmanPosition()
+        standingStill = (newPos == curPos)
         standing = ((not standingStill) * 100) 
         if (standing == 0 ):
             standing = -10000
