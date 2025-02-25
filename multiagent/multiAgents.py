@@ -353,7 +353,7 @@ def betterEvaluationFunction(currentGameState: GameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: A combination of minimum distance to food, average ghost distance when within a 9 square radius, overall food remaining, score, and stopping him from standing still
     """
 
     newPos = currentGameState.getPacmanPosition()
@@ -408,8 +408,10 @@ def betterEvaluationFunction(currentGameState: GameState):
     standing = ((not standingStill) * 100) 
     if (standing == 0 ):
         standing = -10000
+    if min(newScaredTimes) > 1:
+        ghostEval = (0 - ghostEval) + 10
 
-    finalEval = score + foodRemaining + foodEval + ghostEval + standing
+    finalEval = score + foodRemaining + foodEval + ghostEval 
 
     
 
